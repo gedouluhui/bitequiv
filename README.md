@@ -4,7 +4,9 @@
 
 BitEquiv checks two small, fixed-width unsigned integer expressions with Z3, replays counterexamples in an independent Python interpreter, and produces a self-contained HTML explanation. No GPU, account, API key, or network access during checking.
 
-[中文快速说明](README.zh-CN.md) · [Example report source](docs/example-report.html) · [Language and evidence contract](docs/DESIGN.md)
+[Live example report](https://gedouluhui.github.io/bitequiv/example-report.html) · [Download v0.1.0](https://github.com/gedouluhui/bitequiv/releases/tag/v0.1.0) · [中文快速说明](README.zh-CN.md) · [Language contract](docs/DESIGN.md)
+
+[![tests](https://github.com/gedouluhui/bitequiv/actions/workflows/ci.yml/badge.svg)](https://github.com/gedouluhui/bitequiv/actions/workflows/ci.yml)
 
 > Alpha: a focused bitvector workflow, not a C/LLVM verifier. A solver proof is not a proof about the program that produced your expressions. No independently checkable proof certificate is emitted.
 

@@ -1,5 +1,7 @@
 # BitEquiv：把整数优化变成可检查的命题
 
+[直接查看在线示例](https://gedouluhui.github.io/bitequiv/example-report.html) · [下载 v0.1.0](https://github.com/gedouluhui/bitequiv/releases/tag/v0.1.0)
+
 比较两个固定位宽的无符号整数表达式。Z3 负责求解；独立的 Python 整数解释器重放反例；离线 HTML 报告展示具体输入、逐步结果与发生差异的比特。
 
 不是新求解器，也不替代完整 C / LLVM 程序验证。它适合讲解、检查和回归测试小型位运算改写，不证明性能、常数时间或模型质量。

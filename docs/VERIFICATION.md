@@ -32,9 +32,12 @@ The owner inspected screenshots at a desktop viewport and the actual minimum 501
 
 These are scoped checks on this stored example, not a comprehensive accessibility certification, arbitrary-report fuzzing, or Firefox/Safari/real-phone testing. The browser screenshot-to-workspace operation was denied by its path policy; read-only inline screenshots were inspected instead. No path permissions were changed.
 
+## Cloud CI
+
+[Run 44172468713](https://github.com/gedouluhui/bitequiv/actions/runs/44172468713) passed for release commit `53f1f616bf42eb62f0695885b4a3bd6a2894f822`: Windows and Ubuntu, each on Python 3.11 and 3.12. Each job runs tests, targeted mutations, packaging and a clean-wheel check. This is evidence for those CI environments, not every dependency version or operating system.
+
 ## Not yet established by these checks
 
-- Remote GitHub CI outcomes, until actual runs have completed.
 - Compatibility across the entire declared Z3 version range; local testing used the version above.
 - Minimal counterexamples, whole-process memory bounds or strict wall-clock deadlines.
 - Full C/LLVM, signed-language overflow/poison semantics, floating point, saturation, or multi-tenant isolation.
