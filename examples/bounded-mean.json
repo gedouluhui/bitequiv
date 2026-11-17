@@ -1,0 +1,8 @@
+{
+  "title": "A precondition changes the answer",
+  "width": 8,
+  "variables": ["x", "y"],
+  "ranges": {"x": [0, 127], "y": [0, 127]},
+  "left": "(x + y) >> 1",
+  "right": "(x & y) + ((x ^ y) >> 1)"
+}

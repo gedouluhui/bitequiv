@@ -1,0 +1,7 @@
+{
+  "title": "Distributivity survives wrapping",
+  "width": 32,
+  "variables": ["x", "y"],
+  "left": "(x + y) << 1",
+  "right": "(x << 1) + (y << 1)"
+}

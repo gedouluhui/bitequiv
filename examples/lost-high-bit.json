@@ -1,0 +1,7 @@
+{
+  "title": "Two shifts are not an undo",
+  "width": 8,
+  "variables": ["x"],
+  "left": "(x << 1) >> 1",
+  "right": "x"
+}

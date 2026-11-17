@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "status": "different",
+  "problem": {
+    "width": 8,
+    "variables": [
+      "x",
+      "y"
+    ],
+    "left": "(x + y) >> 1",
+    "right": "(x & y) + ((x ^ y) >> 1)",
+    "ranges": {
+      "x": [
+        0,
+        255
+      ],
+      "y": [
+        0,
+        255
+      ]
+    },
+    "title": "The average that lost a bit"
+  },
+  "fingerprint": "c78157d56ec5aa4d56640c78d9a1f159cb8b1f32a5902452f626c7456c75d2f2",
+  "semantics": "Uniform-width unsigned bitvectors; wrapping arithmetic; logical right shift; overshift yields zero. Not C/LLVM semantics.",
+  "engine": {
+    "name": "Z3",
+    "timeout_ms": 5000,
+    "rlimit": 2000000,
+    "version": "4.16.0"
+  },
+  "coverage": {
+    "domain_assignments": "65536",
+    "proof_certificate": false,
+    "scope": "Only these expressions and declared input ranges; not the generating program.",
+    "method": "Satisfying assignment with independent concrete replay; witness need not be minimal."
+  },
+  "witness": {
+    "assignment": {
+      "x": 212,
+      "y": 76
+    },
+    "left": {
+      "value": 16,
+      "steps": [
+        {
+          "expression": "x",
+          "operation": "variable",
+          "value": 212,
+          "binary": "11010100"
+        },
+        {
+          "expression": "y",
+          "operation": "variable",
+          "value": 76,
+          "binary": "01001100"
+        },
+        {
+          "expression": "x + y",
+          "operation": "+",
+          "value": 32,
+          "binary": "00100000"
+        },
+        {
+          "expression": "1",
+          "operation": "constant",
+          "value": 1,
+          "binary": "00000001"
+        },
+        {
+          "expression": "(x + y) >> 1",
+          "operation": ">>",
+          "value": 16,
+          "binary": "00010000"
+        }
+      ]
+    },
+    "right": {
+      "value": 144,
+      "steps": [
+        {
+          "expression": "x",
+          "operation": "variable",
+          "value": 212,
+          "binary": "11010100"
+        },
+        {
+          "expression": "y",
+          "operation": "variable",
+          "value": 76,
+          "binary": "01001100"
+        },
+        {
+          "expression": "x & y",
+          "operation": "&",
+          "value": 68,
+          "binary": "01000100"
+        },
+        {
+          "expression": "x",
+          "operation": "variable",
+          "value": 212,
+          "binary": "11010100"
+        },
+        {
+          "expression": "y",
+          "operation": "variable",
+          "value": 76,
+          "binary": "01001100"
+        },
+        {
+          "expression": "x ^ y",
+          "operation": "^",
+          "value": 152,
+          "binary": "10011000"
+        },
+        {
+          "expression": "1",
+          "operation": "constant",
+          "value": 1,
+          "binary": "00000001"
+        },
+        {
+          "expression": "(x ^ y) >> 1",
+          "operation": ">>",
+          "value": 76,
+          "binary": "01001100"
+        },
+        {
+          "expression": "(x & y) + ((x ^ y) >> 1)",
+          "operation": "+",
+          "value": 144,
+          "binary": "10010000"
+        }
+      ]
+    },
+    "replayed": true,
+    "different_bits": [
+      7
+    ]
+  }
+}

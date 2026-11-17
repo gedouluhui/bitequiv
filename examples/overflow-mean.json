@@ -1,0 +1,7 @@
+{
+  "title": "The average that lost a bit",
+  "width": 8,
+  "variables": ["x", "y"],
+  "left": "(x + y) >> 1",
+  "right": "(x & y) + ((x ^ y) >> 1)"
+}
