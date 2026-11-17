@@ -3,6 +3,9 @@ from .language import InvalidProblem, Problem
 
 
 def evaluate(problem: Problem, side: str, values: dict) -> dict:
+    # A frozen dataclass can still be replaced with new text and stale AST fields.
+    # Use the same serialized-input boundary as check(), never caller-supplied nodes.
+    problem = Problem.from_dict(problem.to_dict())
     if side not in ("left", "right"):
         raise InvalidProblem("side must be left or right")
     if type(values) is not dict or set(values) != set(problem.variables):

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import keyword
+import math
 import re
 
 MAX_INPUT_BYTES = 65536
@@ -47,7 +48,9 @@ def _integer(value, name, low, high):
 
 def _parse_expression(source, variables, width):
     source = _text(source, "expression", MAX_EXPRESSION_CHARS)
-    if not source.strip() or "\n" in source or "\r" in source:
+    if not re.fullmatch(r"[A-Za-z0-9_ \t()+*\-&|^~<>]+", source):
+        raise InvalidProblem("expressions require ASCII tokens, spaces or tabs; comments are not supported")
+    if not source.strip():
         raise InvalidProblem("expressions must be nonempty single lines")
     source = source.strip()
     try:
@@ -123,6 +126,24 @@ class Problem:
         return cls(width, tuple(variables), left, right, tuple(ranges), title, left_ast, right_ast)
 
     def to_dict(self):
+        # Validate the original representation BEFORE a dict conversion can hide duplicates.
+        _integer(self.width, "width", 1, 64)
+        if type(self.variables) is not tuple or any(type(n) is not str for n in self.variables):
+            raise InvalidProblem("Problem.variables must be a tuple of string names")
+        if len(set(self.variables)) != len(self.variables) or type(self.ranges) is not tuple:
+            raise InvalidProblem("Problem variables/ranges must be unique canonical tuples")
+        names = []
+        for entry in self.ranges:
+            if type(entry) is not tuple or len(entry) != 3 or type(entry[0]) is not str:
+                raise InvalidProblem("raw range entries must be (name,min,max) tuples")
+            name, low, high = entry
+            _integer(low, "range minimum", 0, (1 << self.width) - 1)
+            _integer(high, "range maximum", 0, (1 << self.width) - 1)
+            if low > high or name in names:
+                raise InvalidProblem("raw ranges must be nonempty and unique")
+            names.append(name)
+        if set(names) != set(self.variables):
+            raise InvalidProblem("raw ranges must cover exactly the declared variables")
         return dict(width=self.width, variables=list(self.variables), left=self.left, right=self.right,
                     ranges={n: [lo, hi] for n, lo, hi in self.ranges}, title=self.title)
 
@@ -134,20 +155,20 @@ class Problem:
     @property
     def domain_size(self):
         size = 1
-        for _, low, high in self.ranges:
+        for low, high in self.to_dict()["ranges"].values():
             size *= high - low + 1
         return size
 
 
-def parse_json(text):
+def load_json_object(text, max_bytes=MAX_INPUT_BYTES):
     if not isinstance(text, str):
         raise InvalidProblem("input must be UTF-8 JSON text")
     try:
         length = len(text.encode("utf-8"))
     except UnicodeError as exc:
         raise InvalidProblem("input must be valid Unicode") from exc
-    if length > MAX_INPUT_BYTES:
-        raise InvalidProblem(f"input exceeds {MAX_INPUT_BYTES} bytes")
+    if length > max_bytes:
+        raise InvalidProblem(f"input exceeds {max_bytes} bytes")
 
     def unique(pairs):
         result = {}
@@ -166,4 +187,26 @@ def parse_json(text):
         if isinstance(exc, InvalidProblem):
             raise
         raise InvalidProblem("invalid JSON") from exc
-    return Problem.from_dict(data)
+    if type(data) is not dict:
+        raise InvalidProblem("JSON must contain an object")
+    pending = [(data, 0)]
+    count = 0
+    while pending:
+        value, depth = pending.pop()
+        count += 1
+        if depth > 64 or count > 65536:
+            raise InvalidProblem("JSON structure exceeds depth or item limit")
+        if type(value) is dict:
+            pending.extend((key, depth + 1) for key in value)
+            pending.extend((v, depth + 1) for v in value.values())
+        elif type(value) is list:
+            pending.extend((v, depth + 1) for v in value)
+        elif isinstance(value, str):
+            _text(value, "JSON string", max_bytes)
+        elif type(value) is float and not math.isfinite(value):
+            raise InvalidProblem("non-finite JSON number")
+    return data
+
+
+def parse_json(text):
+    return Problem.from_dict(load_json_object(text))

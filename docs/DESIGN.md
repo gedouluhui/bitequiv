@@ -39,3 +39,27 @@ Test every binary/unary operator, fixed and variable shifts, width boundaries, d
 Z3 supplies the reasoning engine. BitEquiv adds a bounded input format, explicit unsigned semantics, independent witness replay and shareable offline reports. It does not replace SMT-LIB/Z3 for general logic or Alive2 for LLVM transformations. This limited convenience/teaching value is a positioning hypothesis, not evidence of adoption or originality.
 
 Primary semantics: https://smt-lib.org/theories-FixedSizeBitVectors.shtml and https://microsoft.github.io/z3guide/docs/theories/Bitvectors/ . The fixed-size theory defines word-level arithmetic and unsigned shifts separately from host-language semantics.
+
+## 0.2 evidence workflow
+
+The next revision keeps the existing arithmetic language and check exit codes. It adds independent consumption paths, not an enlarged programming language.
+
+### Standard query export
+
+`bitequiv export case.json --smt2 query.smt2` writes an exclusive-create SMT-LIB 2 file, sets QF_BV, declares fresh internal names `v0`, `v1`, etc., asserts each unsigned input bound and the inequality between two expressions, and ends with `(check-sat)`. `unsat` means equivalent; `sat` means a counterexample exists; `unknown` means no conclusion. The Python API `export_smt2(problem) -> str` returns the same bytes-as-UTF-8 text. It does not import Z3: a separate AST-to-SMT lowering is tested against both engines. User titles and raw expressions never enter executable SMT commands or comments. The canonical problem fingerprint is embedded for identity, not authentication. Only generated queries are exported: this tool never executes arbitrary user-supplied SMT files or starts external solvers.
+
+### Report replay
+
+`bitequiv replay report.json` reads a bounded JSON report (maximum 1 MiB), independently evaluates the stored assignment against the stored problem, and compares the complete witness: both values, every evaluation step, binaries, differing bit positions and replay marker, using type-strict comparisons. It also checks schema version, canonical problem identity, semantics identifier, domain size and proof-certificate flag. Duplicate keys and unknown top-level fields are rejected. The historical engine name/version/budgets are metadata only, not authenticated by replay.
+
+Result JSON uses `verification_status`, separate from a check's `status`: `verified_counterexample` (exit 0), `mismatch` (exit 1), `unverifiable` (exit 2), `invalid` (exit 3). Every successful replay states that it proves only this concrete inequality for the included problem, not author identity, historical solver execution, equivalence of all inputs, or provenance. An equivalent/unknown/invalid check report is never upgraded to verified by replay. Equivalent requires fresh solving of an exported problem, not an assertion in a JSON file.
+
+No report is executed or directly converted into HTML. The replay output only contains freshly computed facts and bounded diagnostics. Existing schema_version=1 counterexample reports remain replayable.
+
+### Development cross-checks
+
+cvc5 is a development extra only; normal installation remains dependent on Z3 alone. Test the emitted SMT-LIB with both Z3's parser and cvc5's parser, independent of the in-process `to_z3` path. Use known arithmetic identities/anti-identities at varied widths, singleton ranges that make expected results calculable, exhaustive small cases, and every unary/binary operator including wide logical shifts. Fresh-engine runs receive budgets; test subprocesses receive wall-clock limits. Missing cvc5 must fail the explicit cross-check command/CI job, not silently pass. Agreement is additional evidence, not an independently checked proof certificate, because the common parser and specification remain shared assumptions.
+
+### Release safety
+
+New version is 0.2.0. Existing 0.1.0 release assets stay untouched. Package verification discovers version from pyproject.toml and accepts an explicit dist directory; the new artifacts are built under `artifacts/v0.2.0/dist`. No remote write is done by this implementation session; fixed commit and hashes go to the designated release coordinator.

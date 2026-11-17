@@ -24,6 +24,21 @@ python -m bitequiv check examples/bounded-mean.json
 python -m bitequiv check examples/lost-high-bit.json
 ```
 
+## 0.2 源码的新证据工作流
+
+上方公开发行链接仍指向已发布的0.1.0；以下功能在0.2源码分支中，需从此源码安装，不能拿旧下载包运行。
+
+```bash
+bitequiv export examples/overflow-mean.json --smt2 question.smt2
+bitequiv replay docs/example-report.json
+```
+
+`export` 不调用求解器，导出包括完整取值范围的标准QF_BV问题。退出0仅代表文件创建成功；将文件交给独立安装的Z3/cvc5后，sat表示可能不等价、unsat表示声明范围内等价、unknown表示未得结论。导出文件不包含求解器专用预算，外部运行需按该求解器说明设置限制。
+
+`replay` 不信任报告写的“通过”，而是从输入重新计算反例：核对指纹、语义、输入域、两个结果、每步数值和二进制、不同bit。完整重算匹配才返回 `verified_counterexample` / 退出0；被篡改为 `mismatch` / 退出1；“等价”或“未知”等不能凭具体反例复验的报告返回 `unverifiable` / 退出2；格式/文件错误退出3。
+
+这两个命令不用Z3也能工作；普通安装仍带Z3以支持`check`。报告复验只能验证其中问题上的具体数学反例，不认证作者、历史求解过程或元数据，更不等于验证所有输入。
+
 ## 必须读懂的边界
 
 - 位宽为 1–64，最多 8 个变量。每一步都按该位宽回绕；不是 Python 任意精度整数，也不是 C 的整数提升规则。
@@ -39,8 +54,12 @@ python -m bitequiv check examples/lost-high-bit.json
 ```bash
 python -m unittest discover -s tests -v
 python scripts/check_mutations.py
+python -m pip install ".[crosscheck]"
+python scripts/check_cross_solver.py
 ```
 
 测试覆盖手算边界、小位宽逐算子穷举、求解结论与枚举对照、反例重放分歧、真实 CLI 与文件保护。变异测试只改临时副本，不修改产品源码。报告没有独立证明证书；等价结论仍信任 Z3 和表达式转换。
+
+跨求解器检查把独立导出的SMT问题交给Z3和cvc5，与原Z3 API路径比较，并重放SAT赋值。缺少cvc5、超时、unknown和不一致均使该检查失败，不能当作跳过后通过；有限语料上的一致仍不是独立证明证书。
 
 请提交可公开的最小反例及位宽、输入范围，不提交账号、私有源码或数据。详细语义见 [DESIGN.md](docs/DESIGN.md)，英文使用说明见 [README.md](README.md)。MIT 许可；项目由 AI 辅助实现。

@@ -1,4 +1,20 @@
-# Verification scope — 0.1.0
+# Verification scope
+
+## 0.2 local evidence-workflow verification
+
+The 0.2 source extends the existing unsigned contract with a solver-independent SMT-LIB exporter and counterexample-report replay. It also fixes four review findings: caller-replaced Problem objects containing stale ASTs, Unicode normalization/comment stripping before AST validation, stderr failure corrupting an error response, and missing solver budgets in the HTML reproduction command. Each finding was reproduced by a failing regression before its repair.
+
+The local suite and targeted mutations exercise both existing and new paths. `check_cross_solver.py` builds its fixed-width singleton expected values with plain integer operations, then compares the product's Z3 API path to its separately emitted query parsed by Z3 and cvc5. It checks equivalent and deliberately different variants, unsigned range identities, reserved source names, constant-only problems and actual SAT assignments. First full run: 580 cases, Z3 4.16.0 / cvc5 1.4.2, corpus SHA-256 `a8f30d074e393ff71b623981e6c669fa41ff26f269d4b9a14dd7bcff53dd48f1`. Counts and fingerprints in a new run must be recomputed, not assumed from this record.
+
+Cross-solver equality is finite differential evidence. The parser/specification are shared; neither two agreeing solvers nor replayed JSON authenticates author identity, historical execution or a universal proof certificate. Missing cvc5 fails the explicit cross-check command. Production export/replay do not import it or Z3.
+
+The package checker first installs the wheel without solver dependencies and checks export/replay, then installs runtime dependencies and checks the examples from outside the source checkout. New local artifacts use a distinct version/output directory; published 0.1.0 artifacts are not rewritten. A second pair of read-only reviews found additional native-API and verification-boundary issues. All were reproduced and repaired: validate native JSON types/string keys before serialization can coerce them; validate raw Problem ranges before duplicate keys can be overwritten; preserve replay's result key on argument errors; protect help-output writes/flushes; and compare sdist build configuration and every source module against the checkout instead of relying on a good wheel. The archive checker has a passing complete-archive control plus document-only and modified-source negative controls. The owner reran all regressions, source mutations and cross-engine checks after these fixes. A requested final independent follow-up was rejected before execution by service quota (403), so no post-fix independent approval is claimed.
+
+The 0.2 cloud matrix is configured but has not been claimed run here; publication is coordinated separately.
+
+For the HTML budget fix, the owner generated an actual unknown report with timeout1234ms / rlimit1, opened it in the browser, extracted its reproduction command from the HTML and ran that command in a fresh temporary directory. The resulting JSON again reported unknown/exit2 and preserved both budget values; output JSON matched stdout. This tests the user-facing reproduction path, not just a string presence assertion.
+
+## Historical 0.1.0 verification
 
 Owner-run local verification, 2026-11-18 (UTC+8). Python 3.12.3, Z3 4.16.0, Windows x64. These checks do not establish adoption, speedup, correctness of full programs, or independent proof certificates.
 
