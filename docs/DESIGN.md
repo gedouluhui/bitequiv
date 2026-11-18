@@ -62,4 +62,4 @@ cvc5 is a development extra only; normal installation remains dependent on Z3 al
 
 ### Release safety
 
-New version is 0.2.0. Existing 0.1.0 release assets stay untouched. Package verification discovers version from pyproject.toml and accepts an explicit dist directory; the new artifacts are built under `artifacts/v0.2.0/dist`. No remote write is done by this implementation session; fixed commit and hashes go to the designated release coordinator.
+New version is 0.2.0. Existing 0.1.0 release assets stay untouched. Package verification discovers version from pyproject.toml and accepts an explicit dist directory; the new artifacts were built under `artifacts/v0.2.0/dist` and published as v0.2.0.

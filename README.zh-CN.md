@@ -1,6 +1,6 @@
 # BitEquiv：把整数优化变成可检查的命题
 
-[直接查看在线示例](https://gedouluhui.github.io/bitequiv/example-report.html) · [下载 v0.1.0](https://github.com/gedouluhui/bitequiv/releases/tag/v0.1.0)
+[直接查看在线示例](https://gedouluhui.github.io/bitequiv/example-report.html) · [发行版下载](https://github.com/gedouluhui/bitequiv/releases)
 
 比较两个固定位宽的无符号整数表达式。Z3 负责求解；独立的 Python 整数解释器重放反例；离线 HTML 报告展示具体输入、逐步结果与发生差异的比特。
 
@@ -26,7 +26,7 @@ python -m bitequiv check examples/lost-high-bit.json
 
 ## 0.2 源码的新证据工作流
 
-上方公开发行链接仍指向已发布的0.1.0；以下功能在0.2源码分支中，需从此源码安装，不能拿旧下载包运行。
+0.2.0新增两个不依赖求解器的命令；0.1.0发行资产保持不变，请下载最新发行版或从当前源码安装。
 
 ```bash
 bitequiv export examples/overflow-mean.json --smt2 question.smt2

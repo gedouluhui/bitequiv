@@ -4,7 +4,7 @@
 
 BitEquiv checks two small, fixed-width unsigned integer expressions with Z3, replays counterexamples in an independent Python interpreter, and produces a self-contained HTML explanation. No GPU, account, API key, or network access during checking.
 
-[Live example report](https://gedouluhui.github.io/bitequiv/example-report.html) · [Download v0.1.0](https://github.com/gedouluhui/bitequiv/releases/tag/v0.1.0) · [中文快速说明](README.zh-CN.md) · [Language contract](docs/DESIGN.md)
+[Live example report](https://gedouluhui.github.io/bitequiv/example-report.html) · [Releases](https://github.com/gedouluhui/bitequiv/releases) · [中文快速说明](README.zh-CN.md) · [Language contract](docs/DESIGN.md)
 
 [![tests](https://github.com/gedouluhui/bitequiv/actions/workflows/ci.yml/badge.svg)](https://github.com/gedouluhui/bitequiv/actions/workflows/ci.yml)
 
@@ -44,7 +44,7 @@ Requires Python 3.11+ and `z3-solver>=4.12,<5`. The console command `bitequiv` i
 
 ## Export the question. Replay the evidence.
 
-The 0.2 source adds two solver-independent commands. The linked public release above remains 0.1.0 until the release coordinator publishes the new version; install this checkout to use these additions.
+Version 0.2.0 adds two solver-independent commands. The 0.1.0 release assets remain unchanged; download the latest release or install this checkout to use these additions.
 
 ### Hand the exact question to another solver
 
