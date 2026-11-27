@@ -176,3 +176,34 @@ Not a hardened multi-tenant execution service. No proof certificates, full C pro
 MIT. Z3 is a separately installed dependency under its own MIT license. The project is AI-assisted; review and reproducible evidence matter more than authorship marketing.
 
 Semantics follow the [SMT-LIB fixed-size bitvector theory](https://smt-lib.org/theories-FixedSizeBitVectors.shtml) and the [Z3 bitvector guide](https://microsoft.github.io/z3guide/docs/theories/Bitvectors/).
+
+## Quickstart and support
+
+### Problem
+Find a concrete counterexample to equivalence between two small fixed-width unsigned integer expressions and replay the evidence independently.
+
+### Install
+```sh
+python -m pip install .
+```
+
+### Success
+```sh
+python -m bitequiv check examples/bounded-mean.json
+```
+Expected: Z3 proves the expressions equivalent over the restricted nonempty domain; exit 0.
+
+### Deliberate failure
+```sh
+python -m bitequiv check examples/overflow-mean.json --json result.json --html result.html
+```
+Expected: A satisfying assignment is independently replayed and the command exits 1.
+
+### Evidence and coverage boundaries
+Evidence includes hand-calculated wrap/shift cases, exhaustive operator tables at widths 1-4, small-domain solver/enumerator comparisons, actual resource-limit unknowns, witness disagreement controls, subprocess round trips, optional cross-solver checks, and report replay. A solver proof is not a proof about the program that produced the expressions, and no proof certificate is emitted.
+
+### Support status
+Version 0.2.0 is an alpha for Python 3.11+ with z3-solver>=4.12,<5. Source and wheel installation are documented through GitHub releases, not PyPI. Maintenance is best-effort with no SLA.
+
+### Limitations
+The language is one unsigned width of 1-64 bits with explicit operators and ranges; it is not C/LLVM semantics. There is no automatic LLVM extraction, minimal-witness guarantee, constant-time/security claim, or independently checkable proof certificate.
