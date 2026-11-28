@@ -63,3 +63,34 @@ python scripts/check_cross_solver.py
 跨求解器检查把独立导出的SMT问题交给Z3和cvc5，与原Z3 API路径比较，并重放SAT赋值。缺少cvc5、超时、unknown和不一致均使该检查失败，不能当作跳过后通过；有限语料上的一致仍不是独立证明证书。
 
 请提交可公开的最小反例及位宽、输入范围，不提交账号、私有源码或数据。详细语义见 [DESIGN.md](docs/DESIGN.md)，英文使用说明见 [README.md](README.md)。MIT 许可；项目由 AI 辅助实现。
+
+## 快速开始与支持状态
+
+### 问题
+为两个小型固定宽度无符号整数表达式的等价性寻找具体反例，并独立重放证据。
+
+### 安装
+```sh
+python -m pip install .
+```
+
+### 成功命令
+```sh
+python -m bitequiv check examples/bounded-mean.json
+```
+预期：Z3 在受限非空域上证明表达式等价；退出码 0。
+
+### 故意失败命令
+```sh
+python -m bitequiv check examples/overflow-mean.json --json result.json --html result.html
+```
+预期：找到满足赋值并独立重放，命令退出码 1。
+
+### 证据与覆盖边界
+证据包括手算回绕/移位用例、宽度 1-4 的穷举算子表、小型域求解器/枚举器对比、真实资源限制 unknown、witness 不一致对照、子进程往返、可选跨求解器检查和报告重放。求解器证明不是关于生成表达式的程序的证明，也不输出证明证书。
+
+### 支持状态
+版本 0.2.0 是面向 Python 3.11+ 和 z3-solver>=4.12,<5 的 alpha。文档通过 GitHub Release 提供源码和 wheel 安装，不是 PyPI。维护为尽力而为，不提供 SLA。
+
+### 限制
+语言是 1-64 位单一无符号宽度，具有显式算子和范围；不是 C/LLVM 语义。不提供自动 LLVM 提取、最小 witness 保证、常量时间/安全声明或独立可检查的证明证书。

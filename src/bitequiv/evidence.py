@@ -65,15 +65,17 @@ def replay_report(report):
         _validate_native_json(report)
         # Snapshot and bound external data. This also rejects non-finite/invalid Unicode.
         r = parse_report(json.dumps(report, ensure_ascii=True, allow_nan=False))
-        allowed = {"schema_version", "status", "problem", "fingerprint", "semantics", "engine", "coverage", "witness", "reason"}
+        allowed = {"schema_version", "status", "problem", "fingerprint", "semantics", "engine", "coverage", "witness", "proof", "reason"}
         if r.keys() - allowed or type(r.get("schema_version")) is not int or r["schema_version"] != 1:
             raise InvalidProblem("unsupported schema version or unknown report fields")
         status = r.get("status")
         if type(status) is not str or status not in ("equivalent", "different", "unknown", "invalid"):
             raise InvalidProblem("unrecognized check status")
         if status != "different":
+            if "proof" in r and status != "equivalent":
+                raise InvalidProblem("UNSAT replay evidence requires an equivalent status")
             return answer("unverifiable", "Only concrete counterexamples can be replayed; re-solve universal claims.")
-        required = allowed - {"reason"}
+        required = allowed - {"reason", "proof"}
         if r.keys() != required:
             raise InvalidProblem("counterexample report must contain exactly its required fields")
         p = Problem.from_dict(r["problem"])

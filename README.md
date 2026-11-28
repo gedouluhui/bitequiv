@@ -70,7 +70,33 @@ bitequiv replay docs/example-report.json
 # The historical 0.1 report is also supported.
 ```
 
-Replay checks the problem fingerprint, declared semantics/domain, both output values, all trace steps, binary values, changed bits and replay marker with type-strict comparisons. Tampering with one of those fields fails verification. An equivalent report returns **unverifiable**, not verified: there is no concrete witness proving a universal statement.
+Replay checks the problem fingerprint, declared semantics/domain, both output values, all trace steps, binary values, changed bits and replay marker with type-strict comparisons. Tampering with one of those fields fails verification. An equivalent report returns **unverifiable**, not verified: there is no concrete witness proving a universal statement. Equivalent JSON reports separately include finite-domain UNSAT replay evidence that can be re-solved in a fresh Z3 context.
+
+### Re-solve finite-domain UNSAT evidence
+
+An `equivalent` report includes `proof` with the solver name/version, canonical problem SHA-256, variable declarations and the **exact assertions** added to the original solver: both unsigned bounds for every variable and the final `left != right` query. These are the complete assertions, not a minimized UNSAT core. Rebuild them in a fresh solver:
+
+```python
+import z3
+from bitequiv import Problem, check
+
+report = check({
+    "width": 8, "variables": ["x", "y"],
+    "left": "(x + y) >> 1", "right": "(x & y) + ((x ^ y) >> 1)",
+    "ranges": {"x": [0, 127], "y": [0, 127]}
+})
+assert report["status"] == "equivalent"
+proof = report["proof"]
+assert proof["problem_sha256"] == Problem.from_dict(report["problem"]).fingerprint
+query = "\n".join(proof["declarations"] +
+                   [f"(assert {assertion})" for assertion in proof["assertions"]])
+ctx = z3.Context()
+solver = z3.Solver(ctx=ctx)
+solver.add(z3.parse_smt2_string(query, ctx=ctx))
+assert solver.check() == z3.unsat
+```
+
+This is replay evidence for the declared nonempty finite domain, not an independently checkable proof certificate or a universal claim about the generating program. It does not authenticate a historical solver run or independently validate BitEquiv's translation. `bitequiv replay` remains solver-free and concrete-only; use the fresh-solver check above to re-solve an equivalence claim.
 
 | Replay exit | `verification_status` | Meaning |
 |---|---|---|
@@ -144,7 +170,7 @@ This explicitly differs from C integer promotions and undefined shifts, signed o
 
 Z3 already supplies the hard reasoning. BitEquiv adds a small declarative input format, strict language limits, independent witness replay, CI exit semantics, and readable offline evidence. The aim is to make small word-level rewrites easier to explain and regression-test, not to compete with full compiler verification or claim a novel algorithm.
 
-Reports include canonical input SHA-256, solver version, budgets and the exact domain. The hash identifies normalized input, not a signature or proof certificate. Equivalent results still trust Z3 and our translation. The concrete interpreter shares the parser but not the symbolic operator implementation; independent does not mean independently developed or formally verified.
+Reports include canonical input SHA-256, solver version, budgets and the exact domain. Equivalent results also include the exact solver assertions and declarations for fresh-context UNSAT replay. The hash identifies normalized input, not a signature or proof certificate. Equivalent results still trust Z3 and our translation. The concrete interpreter shares the parser but not the symbolic operator implementation; independent does not mean independently developed or formally verified.
 
 ## Tests and contributing
 
@@ -176,3 +202,34 @@ Not a hardened multi-tenant execution service. No proof certificates, full C pro
 MIT. Z3 is a separately installed dependency under its own MIT license. The project is AI-assisted; review and reproducible evidence matter more than authorship marketing.
 
 Semantics follow the [SMT-LIB fixed-size bitvector theory](https://smt-lib.org/theories-FixedSizeBitVectors.shtml) and the [Z3 bitvector guide](https://microsoft.github.io/z3guide/docs/theories/Bitvectors/).
+
+## Quickstart and support
+
+### Problem
+Find a concrete counterexample to equivalence between two small fixed-width unsigned integer expressions and replay the evidence independently.
+
+### Install
+```sh
+python -m pip install .
+```
+
+### Success
+```sh
+python -m bitequiv check examples/bounded-mean.json
+```
+Expected: Z3 proves the expressions equivalent over the restricted nonempty domain; exit 0.
+
+### Deliberate failure
+```sh
+python -m bitequiv check examples/overflow-mean.json --json result.json --html result.html
+```
+Expected: A satisfying assignment is independently replayed and the command exits 1.
+
+### Evidence and coverage boundaries
+Evidence includes hand-calculated wrap/shift cases, exhaustive operator tables at widths 1-4, small-domain solver/enumerator comparisons, exact solver-assertion capture with fresh-solver UNSAT replay, actual resource-limit unknowns, witness disagreement controls, subprocess round trips, optional cross-solver checks, and report replay. A solver proof is not a proof about the program that produced the expressions, and no proof certificate is emitted.
+
+### Support status
+Version 0.2.0 is an alpha for Python 3.11+ with z3-solver>=4.12,<5. Source and wheel installation are documented through GitHub releases, not PyPI. Maintenance is best-effort with no SLA.
+
+### Limitations
+The language is one unsigned width of 1-64 bits with explicit operators and ranges; it is not C/LLVM semantics. There is no automatic LLVM extraction, minimal-witness guarantee, constant-time/security claim, or independently checkable proof certificate.

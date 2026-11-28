@@ -1,6 +1,7 @@
 """Z3-backed equivalence query. Concrete replay must agree before witness publication."""
 from .evaluate import evaluate
 from .language import InvalidProblem, Problem, _integer
+from .proof import build_proof
 
 SEMANTICS = "Uniform-width unsigned bitvectors; wrapping arithmetic; logical right shift; overshift yields zero. Not C/LLVM semantics."
 
@@ -59,7 +60,9 @@ def check(problem, *, timeout_ms=5000, rlimit=2000000):
     report["engine"]["version"] = z3.get_version_string()
     try:
         ctx = z3.Context()
-        symbols = {name: z3.BitVec(name, p.width, ctx=ctx) for name in p.variables}
+        # Safe, positional SMT names keep serialized declarations valid even for
+        # identifiers that collide with SMT-LIB reserved words.
+        symbols = {name: z3.BitVec(f"v{i}", p.width, ctx=ctx) for i, name in enumerate(p.variables)}
         left = to_z3(p.left_ast, symbols, p.width, ctx)
         right = to_z3(p.right_ast, symbols, p.width, ctx)
         solver = z3.Solver(ctx=ctx)
@@ -71,6 +74,7 @@ def check(problem, *, timeout_ms=5000, rlimit=2000000):
         result = solver.check()
         if result == z3.unsat:
             report["status"] = "equivalent"
+            report["proof"] = build_proof(p, solver)
             report["coverage"]["method"] = "Z3 found the inequality unsatisfiable over the nonempty declared domain."
         elif result == z3.sat:
             model = solver.model()
